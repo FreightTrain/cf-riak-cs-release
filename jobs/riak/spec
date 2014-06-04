@@ -1,0 +1,41 @@
+---
+name: riak
+packages:
+- riak
+- erlang
+- git
+- common
+- route-registrar
+templates:
+  riak_ctl.erb: bin/riak_ctl
+  riak.app.config.erb: config/riak.app.config
+  riak.vm.args.erb: config/riak.vm.args
+  join_cluster.sh.erb: join_cluster.sh
+
+  registrar_settings.yml.erb: config/registrar_settings.yml
+  route_registrar_ctl.erb: bin/route_registrar_ctl
+
+properties:
+
+  stanchion.ip:
+    description: 'IP of the stanchion node'
+
+  riak.ips:
+    description: 'IP addresses of riak nodes'
+  riak.seed_node:
+    description: 'Host of the riak seed node'
+  riak.firewall_enabled:
+    description: 'Restricts riak requests to cluster ip range'
+
+  riak_cs.register_route:
+    description: 'Whether the riak cluster registers a route with the cloudfoundry router'
+    default: false
+
+  nats.user:
+    description: 'Username for broker to connect to NATS'
+  nats.password:
+    description: 'Password for broker to connect to NATS'
+  nats.port:
+    description: 'IP port of Cloud Foundry NATS server'
+  nats.machines:
+    description: 'IP of each NATS cluster member'
