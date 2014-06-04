@@ -1,0 +1,6 @@
+username: "<%= p('riak_broker.username') %>"
+password: "<%= p('riak_broker.password') %>"
+riak_hosts:
+<% p('riak_broker.hosts').each do |host| %>
+  - "<%= host %>"
+<% end %>

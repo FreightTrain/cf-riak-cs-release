@@ -1,0 +1,11 @@
+set -e -x
+
+LIBYAML_VERSION="yaml-0.1.5"
+
+tar xzf libyaml/${LIBYAML_VERSION}.tar.gz
+
+cd ${LIBYAML_VERSION}
+
+./configure --prefix=${BOSH_INSTALL_TARGET}
+make
+make install

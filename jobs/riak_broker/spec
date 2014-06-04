@@ -1,0 +1,21 @@
+---
+name: riak_broker
+templates:
+  bin/riak_broker_ctl: bin/riak_broker_ctl
+  config/broker.yml.erb: config/broker.yml
+
+packages:
+- riak_broker
+- libyaml
+- ruby
+
+properties:
+  riak_broker.username:
+    description: broker username
+    default: admin
+  riak_broker.password:
+    description: broker password
+    default: admin
+  riak_broker.hosts:
+    description: the hosts in your riak cluster
+    default: []

@@ -1,0 +1,6 @@
+---
+name: riak_broker
+dependencies:
+  - ruby
+files:
+- cf-riak-service-broker/**/*

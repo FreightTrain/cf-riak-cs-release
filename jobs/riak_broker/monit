@@ -1,0 +1,5 @@
+check process riak_broker
+  with pidfile /var/vcap/sys/run/riak_broker/riak_broker.pid
+  start program "/var/vcap/jobs/riak_broker/bin/riak_broker_ctl start" with timeout 120 seconds
+  stop program "/var/vcap/jobs/riak_broker/bin/riak_broker_ctl stop"
+  group vcap
