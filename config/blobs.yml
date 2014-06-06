@@ -55,3 +55,7 @@ stanchion/stanchion-1.4.3.tar.gz:
   object_id: 1706cf1d-d906-4591-9dab-82a377e7e7ac
   sha: b322a0b3bb38ed90ebdf6ab5817e5de9f4980fca
   size: 3275695
+libyaml/yaml-0.1.5.tar.gz:
+  object_id: 1e416239-f865-4f20-ae3f-9fc33178c06a
+  sha: 8b78cb9f759c7d80db8a7328c0ebecfe34fde737
+  size: 504897
