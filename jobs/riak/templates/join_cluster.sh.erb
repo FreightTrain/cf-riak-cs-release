@@ -1,46 +1,48 @@
 #!/bin/bash
 
 LOG_FILE=/var/vcap/sys/log/riak/join_cluster.log
-ERR_FILE=/var/vcap/sys/log/riak/join_cluster.err.log
 SEED_NODE=<%= properties.riak.seed_node || "127.0.0.1" %>
+RIAK_ADMIN=/var/vcap/packages/riak/rel/bin/riak-admin
 
-function log_position() {
-  message="$(date +%Y-%m-%dT%H:%M:%S%z): line $LINENO"
-  if [ -n "$1" ]
+function f_logger {
+  read message
+  prefix="$(date +%Y-%m-%dT%H:%M:%S%z):"
+  echo "${prefix} ${message}" >> $LOG_FILE
+}
+
+function f_join_cluster {
+  ${RIAK_ADMIN} cluster join riak@$SEED_NODE | f_logger
+  join_cluster_status=$?
+  if [ $join_cluster_status -eq 0 ]
   then
-    message="$message: $1"
+    ${RIAK_ADMIN} cluster plan | f_logger
+    ${RIAK_ADMIN} cluster commit | f_logger
+
+    is_ready=false
+
+    while [ "$is_ready" == "false" ]
+    do
+      ring_ready=`${RIAK_ADMIN} ring_status | grep 'Ring Ready'`
+      if [[ $ring_ready == *"true"* ]]
+      then
+        echo "Ring Ready" | f_logger
+        is_ready=true
+      else
+        sleep 1
+      fi
+    done
+  else
+    echo "riak-admin cluster join riak@$SEED_NODE failed with error code $join_cluster_status" | f_logger
   fi
-  echo "$message" >> $LOG_FILE
 }
 
 mkdir -p `dirname $LOG_FILE`
 mkdir -p `dirname $ERR_FILE`
 
-log_position
-/var/vcap/packages/riak/rel/bin/riak-admin cluster join riak@$SEED_NODE >> $LOG_FILE 2>>$ERR_FILE
-join_cluster_status=$?
-if [ $join_cluster_status -eq 0 ]
-then
-  log_position
-  /var/vcap/packages/riak/rel/bin/riak-admin cluster plan >> $LOG_FILE 2>>$ERR_FILE
-  log_position
-  /var/vcap/packages/riak/rel/bin/riak-admin cluster commit >> $LOG_FILE 2>>$ERR_FILE
 
-  is_ready=false
-
-  while [ "$is_ready" == "false" ]
-  do
-    log_position
-    ring_ready=`/var/vcap/packages/riak/rel/bin/riak-admin ring_status | grep 'Ring Ready'`
-    if [[ $ring_ready == *"true"* ]]
-    then
-      log_position "Ring Ready"
-      is_ready=true
-    else
-      log_position
-      sleep 1
-    fi
-  done
-else
-  echo "riak-admin cluster join riak@$SEED_NODE failed with error code $join_cluster_status" >> $LOG_FILE 2>>$ERR_FILE
+# only try to join cluster if not already joined
+if ${RIAK_ADMIN} member-status | egrep -q "^valid.*riak@${SEED_NODE}"
+  then true
+  else f_join_cluster
 fi
+

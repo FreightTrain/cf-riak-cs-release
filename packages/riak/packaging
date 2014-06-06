@@ -14,6 +14,28 @@ tar xzf riak/riak-${RIAK_VERSION}.tar.gz
 
 # Compile riak
 cd ${BOSH_COMPILE_TARGET}/riak-${RIAK_VERSION}
+
+sed -i 's|{platform_bin_dir,  "./bin"}.|{platform_bin_dir,  "/var/vcap/packages/riak/rel/bin"}.|g' rel/vars.config
+sed -i 's|{platform_data_dir, "./data"}.|{platform_data_dir, "/var/vcap/store/riak/data"}.|g' rel/vars.config
+sed -i 's|{platform_etc_dir,  "./etc"}.|{platform_etc_dir,  "/var/vcap/store/riak/etc"}.|g' rel/vars.config
+sed -i 's|{platform_lib_dir,  "./lib"}.|{platform_lib_dir,  "/var/vcap/packages/riak/rel/lib"}.|g' rel/vars.config
+sed -i 's|{platform_log_dir,  "./log"}.|{platform_log_dir,  "/var/vcap/sys/log/riak"}.|g' rel/vars.config
+
+sed -i 's|{runner_etc_dir,     "$RUNNER_BASE_DIR/etc"}.|{runner_etc_dir,     "{{platform_etc_dir}}"}.|g' rel/vars.config
+sed -i 's|{runner_log_dir,     "$RUNNER_BASE_DIR/log"}.|{runner_log_dir,     "{{platform_log_dir}}"}.|g' rel/vars.config
+sed -i 's|{runner_lib_dir,     "$RUNNER_BASE_DIR/lib"}.|{runner_lib_dir,     "{{platform_lib_dir}}"}.|g' rel/vars.config
+sed -i 's|{runner_patch_dir,   "$RUNNER_BASE_DIR/lib/basho-patches"}.|{runner_patch_dir,   "{{platform_lib_dir}}/basho-patches"}.|g' rel/vars.config
+
+# on warden, run as root - other platforms, use vcap user
+if cat /proc/mounts  | grep -q 'boshlite.*warden'
+  then true
+  else sed -i 's|{runner_user,        ""}.|{runner_user,        "vcap"}.|g' rel/vars.config
+fi
+
+echo '{pid_dir,            "/var/vcap/sys/run"}.' >> rel/vars.config
+sed -i 's|RUN_DIR="/var/run"|RUN_DIR="{{pid_dir}}"|g' deps/node_package/priv/base/env.sh
+
+
 make rel
 
 # output is in rel/riak

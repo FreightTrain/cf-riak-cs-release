@@ -8,9 +8,11 @@ packages:
 - route-registrar
 templates:
   riak_ctl.erb: bin/riak_ctl
-  riak.app.config.erb: config/riak.app.config
-  riak.vm.args.erb: config/riak.vm.args
-  join_cluster.sh.erb: join_cluster.sh
+  riak.app.config.erb: etc/app.config
+  riak.vm.args.erb: etc/vm.args
+  cert.pem: etc/cert.pem
+  key.pem: etc/key.pem
+  join_cluster.sh.erb: bin/join_cluster.sh
 
   registrar_settings.yml.erb: config/registrar_settings.yml
   route_registrar_ctl.erb: bin/route_registrar_ctl
@@ -26,6 +28,9 @@ properties:
     description: 'Host of the riak seed node'
   riak.firewall_enabled:
     description: 'Restricts riak requests to cluster ip range'
+  riak.user:
+    description: 'User to run Riak as'
+    default: 'vcap'
 
   riak_cs.register_route:
     description: 'Whether the riak cluster registers a route with the cloudfoundry router'

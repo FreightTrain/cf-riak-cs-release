@@ -15,64 +15,60 @@
 
 # TODO - change "EXECUTABLE_SERVER" to the command to run
 
+JOB_DIR=/var/vcap/jobs/riak
 RUN_DIR=/var/vcap/sys/run/riak
+RUN_DIR2=/var/vcap/sys/run/riak-admin
 LOG_DIR=/var/vcap/sys/log/riak
-STORE=/var/vcap/store/riak
+STORE_DIR=/var/vcap/store/riak
 PIDFILE=$RUN_DIR/riak.pid
+IP_ADDR=<%= spec.networks.send(spec.networks.methods(false).first).ip %>
 
 export PATH=/var/vcap/packages/ruby/bin:$PATH
-export HOME=/var/vcap
+export HOME=${STORE_DIR}
 
-COMMAND=${COMMAND:-/var/vcap/packages/riak/rel/bin/riak start}
+RIAK_BIN="/var/vcap/packages/riak/rel/bin/riak"
+RIAK_ADMIN="/var/vcap/packages/riak/rel/bin/riak-admin"
 HOME=${HOME:-/home/vcap}
 
 case $1 in
 
   start)
-    mkdir -p $RUN_DIR
-    mkdir -p $LOG_DIR
-    mkdir -p $STORE
+    for DIR in $RUN_DIR $RUN_DIR2 $LOG_DIR $STORE_DIR 
+      do
+        mkdir -p $DIR
+        chown vcap:vcap $DIR
+      done
 
-    # Put the config files in place
-    cp /var/vcap/jobs/riak/config/riak.app.config /var/vcap/packages/riak/rel/etc/app.config
-    cp /var/vcap/jobs/riak/config/riak.vm.args /var/vcap/packages/riak/rel/etc/vm.args
+    ln -s ${JOB_DIR}/etc ${STORE_DIR}
 
     # Set the max open file limit
     ulimit -n 65536
 
-    # Update vm.args with current IP address
-    IP_ADDR=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | tail -1`
-    sed -i "s/127.0.0.1/$IP_ADDR/" /var/vcap/packages/riak/rel/etc/vm.args
-    sed -i "s/127.0.0.1/$IP_ADDR/" /var/vcap/packages/riak/rel/etc/app.config
-
     <% if properties.riak.firewall_enabled %>
-      bash /var/vcap/jobs/riak/restrict_riak_requests_to_cluster_ip_range.sh
+      bash ${JOB_DIR}/restrict_riak_requests_to_cluster_ip_range.sh
     <% end %>
 
     # Start riak
-    /var/vcap/packages/riak/rel/bin/riak start
-
-    # find the PID of the riak process
-    pgrep -f 'beam.*riak' | xargs ps hp | grep 'progname riak ' | awk '{print $1}' > $PIDFILE
+    ${RIAK_BIN} start 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
 
     # Join the cluster if we aren't the seed node
     if [ "$IP_ADDR" != "<%= properties.riak.seed_node %>" ]
     then
-      bash /var/vcap/jobs/riak/join_cluster.sh
+      bash ${JOB_DIR}/bin/join_cluster.sh 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
     fi
 
     # Create admin user for service broker if we are the seed node
     if [ "$IP_ADDR" == "<%= properties.riak.seed_node %>" ]
     then
       # wait for riak_kv to be available before creating an admin user
-      /var/vcap/packages/riak/rel/bin/riak-admin wait-for-service riak_kv riak@$IP_ADDR
+      ${RIAK_ADMIN} wait-for-service riak_kv riak@${IP_ADDR} 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
 
-      /var/vcap/packages/erlang/bin/escript /var/vcap/jobs/riak/bin/create_cs_user.escript &> $LOG_DIR/create_user.log
+      /var/vcap/packages/erlang/bin/escript ${JOB_DIR}/bin/create_cs_user.escript & 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
     fi
     ;;
 
   stop)
-    /var/vcap/packages/riak/rel/bin/riak stop
+    ${RIAK_BIN} stop 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
     rm -f $PIDFILE
     ;;
 
