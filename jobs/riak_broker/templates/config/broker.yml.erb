@@ -4,3 +4,4 @@ riak_hosts:
 <% p('riak_broker.hosts').each do |host| %>
   - "<%= host %>"
 <% end %>
+riak_cleanup_enabled: "<%= p('riak_broker.cleanup_enabled') %>"

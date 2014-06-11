@@ -21,3 +21,6 @@ properties:
   riak_broker.hosts:
     description: the hosts in your riak cluster
     default: []
+  riak_broker.cleanup_enabled:
+    description: Toggle auto-deletion of Riak buckets with no broker mappings
+    default: true

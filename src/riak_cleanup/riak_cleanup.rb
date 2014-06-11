@@ -4,7 +4,7 @@ require 'daemons'
 require 'logger'
 require 'yaml'
 
-def delete_obsolete_buckets 
+def delete_obsolete_buckets(really_delete = true)
 
   # Disable warnings about non-optimal queries
   Riak.disable_list_keys_warnings = true
@@ -17,15 +17,23 @@ def delete_obsolete_buckets
   current_buckets = @client.buckets.collect { |x| x.name }
 
   (current_buckets - valid_buckets).each do |bucket|
-    @log.info('** deleting bucket ' + bucket + ' **')
-    @client.bucket(bucket).keys.each {|k|
-      Riak::RObject.new(@client.bucket(bucket), k).delete
-    }
+    if really_delete == 'false'
+      @log.info('** Would have deleted obsolete bucket ' + bucket + ' **')
+    else
+      @log.info('** deleting bucket ' + bucket + ' **')
+      @client.bucket(bucket).keys.each {|k|
+        Riak::RObject.new(@client.bucket(bucket), k).delete
+      }
+    end
   end
 end
 
 def load_hosts_lists
   YAML.load_file('/var/vcap/jobs/riak_broker/config/broker.yml')['riak_hosts']
+end
+
+def load_cleanup_config
+  YAML.load_file('/var/vcap/jobs/riak_broker/config/broker.yml')['riak_cleanup_enabled']
 end
 
 Daemons.run_proc(
@@ -41,7 +49,7 @@ Daemons.run_proc(
 
     @log = Logger.new(STDOUT)
     while true do
-      delete_obsolete_buckets
+      delete_obsolete_buckets(load_cleanup_config)
       sleep 60
     end
 end
