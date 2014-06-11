@@ -8,6 +8,8 @@ def delete_obsolete_buckets
 
   # Disable warnings about non-optimal queries
   Riak.disable_list_keys_warnings = true
+  # Disable warnings about locales
+  I18n.enforce_available_locales = false
 
   # This is effectively a full DB scan - may have to be re-evaluated for large DB sizes
   valid_buckets = ['service_instances', 'service_bindings'] + @client.bucket("service_instances").keys
@@ -17,7 +19,6 @@ def delete_obsolete_buckets
   (current_buckets - valid_buckets).each do |bucket|
     @log.info('** deleting bucket ' + bucket + ' **')
     @client.bucket(bucket).keys.each {|k|
-      # consider throttling this delete
       Riak::RObject.new(@client.bucket(bucket), k).delete
     }
   end
@@ -36,7 +37,7 @@ Daemons.run_proc(
   :log_output => true
 ) do
 
-    @client = Riak::Client.new(:nodes => load_hosts_lists.collect { |host| { :host => host, :pb_port => 8097 } } )
+    @client = Riak::Client.new(:protocol => "pbc", :nodes => load_hosts_lists.collect { |host| { :host => host, :pb_port => 8087 } } )
 
     @log = Logger.new(STDOUT)
     while true do
