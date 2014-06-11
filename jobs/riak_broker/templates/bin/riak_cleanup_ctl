@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+# -------------------------------------------------------------
+# TODO END - refactor to a common location
+# -------------------------------------------------------------
+
+function directory_setup {
+
+    export PKG_DIR="/var/vcap/packages/riak_cleanup"
+    export JOB_DIR="/var/vcap/jobs/riak_broker"
+    export RUN_DIR="/var/vcap/sys/run/riak_broker"
+    export LOG_DIR="/var/vcap/sys/log/riak_broker"
+
+    for dir in ${RUN_DIR} ${LOG_DIR}
+    do
+      mkdir -p ${dir}
+      chown vcap:vcap ${dir}
+      chmod 775 ${dir}
+    done
+
+    export PID_FILE=${RUN_DIR}/riak_cleanup.pid
+}
+
+function perform_action {
+
+  action=${1}
+
+  case ${action} in
+
+    start)
+      cd ${PKG_DIR}
+      chpst -u vcap:vcap bash -c "/var/vcap/packages/ruby/bin/bundle exec ${PKG_DIR}/riak_cleanup.rb start" 2>${LOG_DIR}/riak_cleanup_stderr.log 1>${LOG_DIR}/riak_cleanup_stdout.log
+      ;;
+
+    stop)
+      cd ${PKG_DIR}
+      chpst -u vcap:vcap bash -c "/var/vcap/packages/ruby/bin/bundle exec ${PKG_DIR}/riak_cleanup.rb stop" 2>${LOG_DIR}/riak_cleanup_stderr.log 1>${LOG_DIR}/riak_cleanup_stdout.log
+      ;;
+
+    *)
+      echo "Usage: riak_cleanup_ctl {start|stop}"
+      ;;
+
+  esac
+  exit 0
+
+}
+
+#
+# Main
+#
+export LANG="en_US.UTF-8"
+export PATH=/var/vcap/packages/ruby/bin:$PATH
+
+action=${1}
+directory_setup
+perform_action ${action}

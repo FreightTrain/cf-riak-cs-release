@@ -1,0 +1,6 @@
+---
+name: riak_cleanup
+dependencies:
+  - ruby
+files:
+- riak_cleanup/**/*

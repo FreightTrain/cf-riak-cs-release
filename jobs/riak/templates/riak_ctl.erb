@@ -57,14 +57,6 @@ case $1 in
       bash ${JOB_DIR}/bin/join_cluster.sh 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
     fi
 
-    # Create admin user for service broker if we are the seed node
-    if [ "$IP_ADDR" == "<%= properties.riak.seed_node %>" ]
-    then
-      # wait for riak_kv to be available before creating an admin user
-      ${RIAK_ADMIN} wait-for-service riak_kv riak@${IP_ADDR} 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
-
-      /var/vcap/packages/erlang/bin/escript ${JOB_DIR}/bin/create_cs_user.escript & 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
-    fi
     ;;
 
   stop)

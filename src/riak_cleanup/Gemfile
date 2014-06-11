@@ -1,0 +1,6 @@
+source "https://rubygems.org"
+
+gem "riak-client", "~> 1.4.2", require: "riak"
+gem 'daemons'
+gem 'logger'
+

@@ -1,0 +1,10 @@
+# abort script on any command that exit with a non zero value
+set -e
+
+bundle_cmd=/var/vcap/packages/ruby/bin/bundle
+
+cp -a riak_cleanup/* ${BOSH_INSTALL_TARGET}
+
+cd ${BOSH_INSTALL_TARGET}
+$bundle_cmd install --path ${BOSH_INSTALL_TARGET}/vendor
+$bundle_cmd install --deployment

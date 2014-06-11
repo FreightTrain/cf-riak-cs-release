@@ -2,12 +2,14 @@
 name: riak_broker
 templates:
   bin/riak_broker_ctl: bin/riak_broker_ctl
+  bin/riak_cleanup_ctl: bin/riak_cleanup_ctl
   config/broker.yml.erb: config/broker.yml
 
 packages:
 - riak_broker
 - libyaml
 - ruby
+- riak_cleanup
 
 properties:
   riak_broker.username:

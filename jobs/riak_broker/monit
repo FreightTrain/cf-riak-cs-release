@@ -3,3 +3,9 @@ check process riak_broker
   start program "/var/vcap/jobs/riak_broker/bin/riak_broker_ctl start" with timeout 120 seconds
   stop program "/var/vcap/jobs/riak_broker/bin/riak_broker_ctl stop"
   group vcap
+
+check process riak_cleanup
+  with pidfile /var/vcap/sys/run/riak_broker/riak_cleanup.pid
+  start program "/var/vcap/jobs/riak_broker/bin/riak_cleanup_ctl start" with timeout 10 seconds
+  stop program "/var/vcap/jobs/riak_broker/bin/riak_cleanup_ctl stop"
+  group vcap

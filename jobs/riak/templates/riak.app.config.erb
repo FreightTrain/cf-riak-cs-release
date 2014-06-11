@@ -80,7 +80,16 @@
  {riak_kv, [
             %% Storage_backend specifies the Erlang module defining the storage
             %% mechanism that will be used on this node.
-            {storage_backend, riak_kv_bitcask_backend},
+            {storage_backend, riak_kv_multi_backend},
+            {multi_backend_default, <<"bitcask_mult">>},
+            {multi_backend, [
+                %% Heres where you set the individual multiplexed backends
+                {<<"bitcask_mult">>,  riak_kv_bitcask_backend, [
+                ]},
+                {<<"eleveldb_mult">>, riak_kv_eleveldb_backend, [
+                ]}
+            ]},
+
 
             %% raw_name is the first part of all URLS used by the Riak raw HTTP
             %% interface.  See riak_web.erl and raw_http_resource.erl for
@@ -93,7 +102,7 @@
             {anti_entropy, {on, []}},
 
             %% Restrict how fast AAE can build hash trees. Building the tree
-            %% for a given partition requires a full scan over that partition's
+            %% for a given partition requires a full scan over that partitions
             %% data. Once built, trees stay built until they are expired.
             %% Config is of the form:
             %%   {num-builds, per-timespan-in-milliseconds}
@@ -181,7 +190,7 @@
 
             %% This option specifies how many of each type of fsm may exist
             %% concurrently.  This is for overload protection and is a new
-            %% mechanism that obsoletes 1.3's health checks. Note that this number
+            %% mechanism that obsoletes 1.3s health checks. Note that this number
             %% represents two potential processes, so +P in vm.args should be at 
             %% least 3X the fsm_limit.
             {fsm_limit, 50000},
@@ -227,7 +236,7 @@
  %% Bitcask Config
  {bitcask, [
              %% Configure how Bitcask writes data to disk.
-             %%   erlang: Erlang's built-in file API
+             %%   erlang: Erlangs built-in file API
              %%      nif: Direct calls to the POSIX C API
              %%
              %% The NIF mode provides higher throughput for certain
@@ -292,7 +301,7 @@
             {error_logger_redirect, true},
 
             %% maximum number of error_logger messages to handle in a second
-            %% lager 2.0.0 shipped with a limit of 50, which is a little low for riak's startup
+            %% lager 2.0.0 shipped with a limit of 50, which is a little low for riaks startup
             {error_logger_hwm, 100}
         ]},
 
