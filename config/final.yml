@@ -4,4 +4,4 @@ blobstore:
   options:
     bucket_name: c3-services
 min_cli_version: 1.5.0.pre.1117
-final_name: cf-riak-cs
+final_name: riak
