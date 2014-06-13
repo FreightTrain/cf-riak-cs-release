@@ -11,37 +11,38 @@ function f_logger {
 }
 
 function f_join_cluster {
-  ${RIAK_ADMIN} cluster join riak@$SEED_NODE | f_logger
-  join_cluster_status=$?
-  if [ $join_cluster_status -eq 0 ]
-  then
-    ${RIAK_ADMIN} cluster plan | f_logger
-    ${RIAK_ADMIN} cluster commit | f_logger
+  cluster_join_status=-1
+  while [ $cluster_join_status -ne 0 ]
+  do
+    echo Joining cluster riak@$SEED_NODE | f_logger
+    ${RIAK_ADMIN} cluster join riak@$SEED_NODE
+    cluster_join_status=$?
+    sleep 2
+  done
 
-    is_ready=false
+  echo Successfully joined cluster riak@$SEED_NODE | f_logger
+  ${RIAK_ADMIN} cluster plan
+  ${RIAK_ADMIN} cluster commit
 
-    while [ "$is_ready" == "false" ]
-    do
-      ring_ready=`${RIAK_ADMIN} ring_status | grep 'Ring Ready'`
-      if [[ $ring_ready == *"true"* ]]
-      then
-        echo "Ring Ready" | f_logger
-        is_ready=true
-      else
-        sleep 1
-      fi
-    done
-  else
-    echo "riak-admin cluster join riak@$SEED_NODE failed with error code $join_cluster_status" | f_logger
-  fi
+  is_ready=false
+
+  while [ "$is_ready" == "false" ]
+  do
+    ring_ready=`${RIAK_ADMIN} ring_status | grep 'Ring Ready'`
+    if [[ $ring_ready == *"true"* ]]
+    then
+      echo "Ring Ready" | f_logger
+      is_ready=true
+    else
+      sleep 1
+    fi
+  done
 }
 
 mkdir -p `dirname $LOG_FILE`
-mkdir -p `dirname $ERR_FILE`
-
 
 # only try to join cluster if not already joined
-if ${RIAK_ADMIN} member-status | egrep -q "^valid.*riak@${SEED_NODE}"
+if ${RIAK_ADMIN} member-status | egrep -q "riak@${SEED_NODE}"
   then true
   else f_join_cluster
 fi
