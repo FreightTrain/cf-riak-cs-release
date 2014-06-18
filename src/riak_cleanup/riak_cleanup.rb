@@ -49,7 +49,11 @@ Daemons.run_proc(
 
     @log = Logger.new(STDOUT)
     while true do
-      delete_obsolete_buckets(load_cleanup_config)
+      begin
+        delete_obsolete_buckets(load_cleanup_config)
+      rescue RuntimeError => e
+        @log.error(%Q(Problem deleting obsolete buckets: #{e.message}\n#{e.backtrace.join("\n")}))
+      end
       sleep 60
     end
 end
