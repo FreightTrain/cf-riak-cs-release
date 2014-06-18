@@ -99,7 +99,7 @@
             %% Enable active anti-entropy subsystem + optional debug messages:
             %%   {anti_entropy, {on|off, []}},
             %%   {anti_entropy, {on|off, [debug]}},
-            {anti_entropy, {off, []}},
+            {anti_entropy, {<%= p('riak.anti_entropy') %>, []}},
 
             %% Restrict how fast AAE can build hash trees. Building the tree
             %% for a given partition requires a full scan over that partitions

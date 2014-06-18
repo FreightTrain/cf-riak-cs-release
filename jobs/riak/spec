@@ -29,3 +29,6 @@ properties:
   riak.admin_pass:
     description: User password for the admin web UI
     default: 'pass'
+  riak.anti_entropy:
+    description: Toggle anti-entropy feature
+    default: 'on'
