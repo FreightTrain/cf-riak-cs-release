@@ -23,12 +23,10 @@ STORE_DIR=/var/vcap/store/riak
 PIDFILE=$RUN_DIR/riak.pid
 IP_ADDR=<%= spec.networks.send(spec.networks.methods(false).first).ip %>
 
-export PATH=/var/vcap/packages/ruby/bin:$PATH
 export HOME=${STORE_DIR}
 
 RIAK_BIN="/var/vcap/packages/riak/rel/bin/riak"
 RIAK_ADMIN="/var/vcap/packages/riak/rel/bin/riak-admin"
-HOME=${HOME:-/home/vcap}
 
 case $1 in
 
@@ -50,12 +48,7 @@ case $1 in
 
     # Start riak
     ${RIAK_BIN} start 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
-
-    # Join the cluster if we aren't the seed node
-    if [ "$IP_ADDR" != "<%= properties.riak.seed_node %>" ]
-    then
-      bash ${JOB_DIR}/bin/join_cluster.sh 1>${LOG_DIR}/riak_ctl.stdout 2>${LOG_DIR}/riak_ctl.stderr
-    fi
+    ${RIAK_ADMIN}  wait-for-service riak_kv "riak@${IP_ADDR}"
 
     ;;
 

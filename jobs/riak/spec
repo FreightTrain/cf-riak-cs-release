@@ -11,7 +11,11 @@ templates:
   riak.vm.args.erb: etc/vm.args
   cert.pem: etc/cert.pem
   key.pem: etc/key.pem
-  join_cluster.sh.erb: bin/join_cluster.sh
+  riak_cluster_join.sh.erb: bin/riak_cluster_join.sh
+  riak_cluster_join_ctl: bin/riak_cluster_join_ctl
+  riak_health.sh: bin/riak_health.sh
+  riak_health_ctl: bin/riak_health_ctl
+  functions.sh: bin/functions.sh
 
 properties:
 
@@ -19,4 +23,9 @@ properties:
     description: 'Host of the riak seed node'
   riak.firewall_enabled:
     description: 'Restricts riak requests to cluster ip range'
-
+  riak.admin_user:
+    description: User for the admin web UI
+    default: 'user'
+  riak.admin_pass:
+    description: User password for the admin web UI
+    default: 'pass'

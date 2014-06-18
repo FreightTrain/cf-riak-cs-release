@@ -12,7 +12,7 @@ def delete_obsolete_buckets(really_delete = true)
   I18n.enforce_available_locales = false
 
   # This is effectively a full DB scan - may have to be re-evaluated for large DB sizes
-  valid_buckets = ['service_instances', 'service_bindings'] + @client.bucket("service_instances").keys
+  valid_buckets = ['service_instances', 'service_bindings', 'healthcheck'] + @client.bucket("service_instances").keys
 
   current_buckets = @client.buckets.collect { |x| x.name }
 

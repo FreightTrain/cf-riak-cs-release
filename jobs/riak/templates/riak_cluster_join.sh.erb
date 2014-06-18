@@ -1,0 +1,68 @@
+#!/bin/bash
+
+LOG_FILE=/var/vcap/sys/log/riak/riak_cluster_join.log
+SEED_NODE=<%= properties.riak.seed_node || "127.0.0.1" %>
+RIAK_ADMIN=/var/vcap/packages/riak/rel/bin/riak-admin
+JOB_DIR=/var/vcap/jobs/riak
+STORE_DIR=/var/vcap/store/riak
+PIDFILE=/var/vcap/sys/run/riak/riak_cluster_join.pid
+source ${JOB_DIR}/bin/functions.sh
+export HOME=${STORE_DIR}
+
+# PID/lock - we only want one instance running.
+f_lock_test ${PIDFILE}
+
+function f_join_cluster {
+
+  ${RIAK_ADMIN} cluster join riak@${SEED_NODE}  &&\
+  ${RIAK_ADMIN} cluster plan &&\
+  ${RIAK_ADMIN} cluster commit
+
+  if [ $? -ne 0 ]
+    then
+      echo "`date` - Failed to join cluster ${SEED_NODE}"
+      return 1
+  fi
+}
+
+
+function f_wait_for_ring {
+
+    is_ready=false
+
+    while [ "$is_ready" == "false" ]
+    do
+      ring_ready=`${RIAK_ADMIN} ring_status | grep 'Ring Ready'`
+      if [[ $ring_ready == *"true"* ]]
+      then
+        echo "`date` - Ring Ready"
+        is_ready=true
+      else
+        sleep 1
+      fi
+    done
+}
+
+mkdir -p `dirname $LOG_FILE`
+
+
+# only try to join cluster if not already joined
+while true
+  do
+    seed=`${RIAK_ADMIN} member-status`
+    seed_exit=$?
+    if [[ seed_exit -ne 0 ]]
+      then
+        echo "`date` - Cannot contact local Riak"
+        exit 1
+    fi
+
+    if ${RIAK_ADMIN} member-status | egrep -q "^valid.*riak@${SEED_NODE}"
+      then
+        true
+      else
+        f_join_cluster && f_wait_for_ring
+    fi
+  sleep 60
+  done
+

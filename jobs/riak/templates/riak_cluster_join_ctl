@@ -1,0 +1,30 @@
+#!/bin/bash -x
+
+JOB_DIR=/var/vcap/jobs/riak
+RIAK_JOIN=/var/vcap/jobs/riak/bin/riak_cluster_join.sh
+RUN_DIR=/var/vcap/sys/run/riak
+LOG_DIR=/var/vcap/sys/log/riak
+PIDFILE=$RUN_DIR/riak_cluster_join.pid
+
+case $1 in
+
+  start)
+    for DIR in $RUN_DIR $LOG_DIR
+      do
+        mkdir -p $DIR
+        chown vcap:vcap $DIR
+      done
+
+    # Start health monitor
+    ${RIAK_JOIN} > ${LOG_DIR}/riak_cluster_join.log 2>&1 & 
+    ;;
+
+  stop)
+    kill `cat ${PIDFILE}`
+    rm -f $PIDFILE
+    ;;
+
+  *)
+    echo "Usage: riak_cluster_join_ctl {start|stop}" ;;
+esac
+exit 0
