@@ -26,4 +26,3 @@ properties:
     default: true
   riak_broker.service_instance_limit:
     description: Maximum number of service instances allowed
-    default: 10

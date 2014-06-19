@@ -5,4 +5,6 @@ riak_hosts:
   - "<%= host %>"
 <% end %>
 riak_cleanup_enabled: "<%= p('riak_broker.cleanup_enabled') %>"
-service_instance_limit: <%= p('riak_broker.service_instance_limit') %>
+<% if_p('riak_broker.service_instance_limit') do |limit| %>
+service_instance_limit: <%= limit %>
+<% end %>
